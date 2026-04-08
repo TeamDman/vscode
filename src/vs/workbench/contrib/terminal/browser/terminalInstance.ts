@@ -339,6 +339,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	readonly onDidBlur = this._onDidBlur.event;
 	private readonly _onDidInputData = this._register(new Emitter<string>());
 	readonly onDidInputData = this._onDidInputData.event;
+	private _pendingHighSurrogateFromInput = '';
 	private readonly _onDidChangeSelection = this._register(new Emitter<ITerminalInstance>());
 	readonly onDidChangeSelection = this._onDidChangeSelection.event;
 	private readonly _onRequestAddInstanceToGroup = this._register(new Emitter<IRequestAddInstanceToGroupEvent>());
@@ -657,8 +658,51 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	}
 
 	private async _handleOnData(data: string): Promise<void> {
+		data = this._normalizeInputDataForPty(data);
+		if (!data) {
+			return;
+		}
 		await this._processManager.write(data);
 		this._onDidInputData.fire(data);
+	}
+
+	private _normalizeInputDataForPty(data: string): string {
+		if (!data && !this._pendingHighSurrogateFromInput) {
+			return data;
+		}
+
+		let normalizedData = this._pendingHighSurrogateFromInput + data;
+		this._pendingHighSurrogateFromInput = '';
+
+		let transformedData = '';
+		for (let index = 0; index < normalizedData.length; index++) {
+			const currentCharCode = normalizedData.charCodeAt(index);
+			if (currentCharCode >= 0xD800 && currentCharCode <= 0xDBFF) {
+				if (index + 1 >= normalizedData.length) {
+					this._pendingHighSurrogateFromInput = normalizedData[index];
+					continue;
+				}
+
+				const nextCharCode = normalizedData.charCodeAt(index + 1);
+				if (nextCharCode >= 0xDC00 && nextCharCode <= 0xDFFF) {
+					transformedData += normalizedData[index] + normalizedData[index + 1];
+					index++;
+					continue;
+				}
+
+				transformedData += '\uFFFD';
+				continue;
+			}
+
+			if (currentCharCode >= 0xDC00 && currentCharCode <= 0xDFFF) {
+				transformedData += '\uFFFD';
+				continue;
+			}
+
+			transformedData += normalizedData[index];
+		}
+
+		return transformedData;
 	}
 
 	private _getIcon(): TerminalIcon | undefined {

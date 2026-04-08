@@ -123,6 +123,44 @@ suite('Workbench - TerminalInstance', () => {
 
 	suite('TerminalInstance', () => {
 		let terminalInstance: ITerminalInstance;
+
+		test('should normalize invalid surrogate input and join split surrogate chunks', async () => {
+			const writtenData: string[] = [];
+			const firedInputData: string[] = [];
+			const instance = Object.create(TerminalInstance.prototype) as TerminalInstance & {
+				_handleOnData(data: string): Promise<void>;
+				_pendingHighSurrogateFromInput: string;
+				_processManager: { write(data: string): Promise<void> };
+				_onDidInputData: { fire(data: string): void };
+			};
+
+			instance._pendingHighSurrogateFromInput = '';
+			instance._processManager = {
+				write: async (data: string) => {
+					writtenData.push(data);
+				}
+			};
+			instance._onDidInputData = {
+				fire: (data: string) => firedInputData.push(data)
+			};
+
+			await instance._handleOnData('\uD83D');
+			strictEqual(writtenData.length, 0);
+			strictEqual(firedInputData.length, 0);
+
+			await instance._handleOnData('\uDE00');
+			deepStrictEqual(writtenData, ['\uD83D\uDE00']);
+			deepStrictEqual(firedInputData, ['\uD83D\uDE00']);
+
+			await instance._handleOnData('\uD83D\r');
+			deepStrictEqual(writtenData, ['\uD83D\uDE00', '\uFFFD\r']);
+			deepStrictEqual(firedInputData, ['\uD83D\uDE00', '\uFFFD\r']);
+
+			await instance._handleOnData('\uDE00');
+			deepStrictEqual(writtenData, ['\uD83D\uDE00', '\uFFFD\r', '\uFFFD']);
+			deepStrictEqual(firedInputData, ['\uD83D\uDE00', '\uFFFD\r', '\uFFFD']);
+		});
+
 		test('should create an instance of TerminalInstance with env from default profile', async () => {
 			const instantiationService = workbenchInstantiationService({
 				configurationService: () => new TestConfigurationService({
