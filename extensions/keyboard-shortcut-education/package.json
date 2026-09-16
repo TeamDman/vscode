@@ -2,7 +2,7 @@
 	"name": "keyboard-shortcut-education",
 	"displayName": "Keyboard Shortcut Education Panel",
 	"description": "Show a history of keyboard and Command Palette actions while teaching. Requires the custom Code - OSS build.",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"publisher": "vscode",
 	"license": "MIT",
 	"engines": {
@@ -46,5 +46,8 @@
 		"compile": "gulp compile-extension:keyboard-shortcut-education",
 		"test": "node --test test/*.test.cts",
 		"test:browser": "node --test test/panel.browser.cts"
-	}
+	},
+	"activationEvents": [
+		"onStartupFinished"
+	]
 }

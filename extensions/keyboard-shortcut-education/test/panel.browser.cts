@@ -15,7 +15,7 @@ const accept = { commandId: 'quickInput.accept', title: 'quickInput.accept', sou
 
 /** Drive the compiled extension and its actual HTML, script and stylesheet without desktop input. */
 async function openPanel(browser, width = 640) {
-	const s = setup(); s.registry.get('keyboardShortcutEducation.open')();
+	const s = setup();
 	const panel = s.panels[0];
 	const context = await browser.newContext({ viewport: { width: width + 220, height: 820 } });
 	const page = await context.newPage();

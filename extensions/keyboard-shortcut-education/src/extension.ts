@@ -86,4 +86,5 @@ export function activate(context: vscode.ExtensionContext): void {
 		}),
 		{ dispose: () => panel?.dispose() }
 	);
+	open();
 }

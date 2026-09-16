@@ -1,6 +1,6 @@
 # Keyboard Shortcut Education Panel
 
-Open a text editor, then run **Keyboard Shortcut Education Panel: Open** from the Command Palette. The panel opens beside your editor and keeps a history of the commands you invoke, newest first.
+The panel opens automatically beside your editor when Code - OSS Education starts, preserving editor focus. It keeps a history of the commands you invoke, newest first. If you close it, use **Keyboard Shortcut Education Panel: Open** from the Command Palette to reopen it.
 
 ## Use the panel
 
@@ -13,7 +13,7 @@ Open a text editor, then run **Keyboard Shortcut Education Panel: Open** from th
 | Press Space while the panel has focus | Changes style without replacing the clipboard |
 | Clear, or the Clear History command | Empties the history |
 
-Run **Keyboard Shortcut Education Panel: Set Style** to choose Toast, Keycaps or Terminal. **Next Style** cycles through them. The style name, hint and Clear button appear when you hover over the panel or focus it. The whole controls area collapses when neither condition applies, leaving no reserved space above the history.
+Run **Keyboard Shortcut Education Panel: Set Style** to choose Toast, Keycaps or Terminal. **Next Style** cycles through them. The style name, hint and Clear button appear when you hover over the panel or focus it. The whole controls area collapses when neither condition applies, leaving only a top inset equal to the gap between history cards (16 pixels).
 
 The panel updates immediately when a command is invoked. It does not wait for the command to finish. A command that opens a prompt appears before you answer that prompt. A missing registered title falls back to the command ID.
 
@@ -106,7 +106,9 @@ Panel control commands do not become history entries. Each card copies its own a
 
 ## Verified build results
 
-The core typecheck, bundled extension and media compilation, Copilot compilation, module-layer checks and targeted lint checks passed. The keyboard and bridge suites passed 28 tests; the history panel passed 7 contract and formatting tests plus 2 browser tests covering 18 style/width/theme combinations. The history update includes regression checks for palette/prompt ordering, per-card copying, clearing, stale copy requests and disposal. Browser checks exercise the compiled panel for hover/focus controls, Space/Enter behavior, focus preservation and scrolling.
+The core typecheck, bundled extension and media compilation, Copilot compilation, module-layer checks and targeted lint checks passed. The keyboard and bridge suites passed 28 tests; the history panel passed 8 contract and formatting tests plus 2 browser tests covering 18 style/width/theme combinations. The history update includes regression checks for palette/prompt ordering, per-card copying, clearing, stale copy requests and disposal. Browser checks exercise the compiled panel for hover/focus controls, Space/Enter behavior, focus preservation and scrolling.
+
+Automated startup checks in the real Code - OSS build passed with a fresh profile and after reopening with saved window state. Exactly one panel opened beside the editor without invoking its Open command; editor focus, panel reuse and manual close/reopen were verified. Browser measurements confirmed a 16-pixel top inset and 16-pixel card gap in narrow and wide panes.
 
 Desktop verification covered the original editor shortcuts and `textPowerTools.insertDecimalNumbers` from the palette. Text Power Tools inserted 1, 2 and 3 at three cursors while the panel showed the exact title and command ID without a shortcut. Left-click copy and right-click style-and-copy both completed in the running panel.
 

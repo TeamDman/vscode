@@ -18,7 +18,7 @@ Each card shows the registered command title, command ID and invocation source. 
 
 ## Use the panel
 
-Run **Keyboard Shortcut Education Panel: Open** from the Command Palette. It opens beside your editor.
+The panel opens automatically beside your editor when the app starts, keeping focus in the editor. If you close it, run **Keyboard Shortcut Education Panel: Open** from the Command Palette to bring it back.
 
 | Control | Behavior |
 | --- | --- |
@@ -27,7 +27,7 @@ Run **Keyboard Shortcut Education Panel: Open** from the Command Palette. It ope
 | Right-click the panel | Cycle style and copy the new style's name, ID and description |
 | Clear | Empty the action history |
 
-The style name, usage hint and Clear button appear on hover or focus, and collapse without leaving a gap when neither applies. Clear stays within reach while scrolling through a long history. **Set Style**, **Next Style** and **Clear History** are also available under **Keyboard Shortcut Education Panel** in the Command Palette.
+The style name, usage hint and Clear button appear on hover or focus, and collapse when neither applies. The first card then has the same top inset as the gap between cards. Clear stays within reach while scrolling through a long history. **Set Style**, **Next Style** and **Clear History** are also available under **Keyboard Shortcut Education Panel** in the Command Palette.
 
 History lives in memory while the panel is open. Clear or closing the panel removes it; reopening starts empty. The panel collects command metadata only: it does not read typed text, command arguments, editor contents or clipboard contents. It writes to the clipboard only when you request a copy. Background programmatic commands are not collected.
 

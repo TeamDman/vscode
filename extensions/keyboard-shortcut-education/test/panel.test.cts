@@ -13,8 +13,22 @@ const snapshot = panel => {
 	panel.message.fire({ type: 'ready' });
 	return JSON.parse(JSON.stringify(panel.sent.at(-1)));
 };
+test('startup opens one panel beside the editor without taking focus; manual close stays closed', () => {
+	const manifest = require('../package.json');
+	const s = setup();
+	assert.deepEqual({ activationEvents: manifest.activationEvents, panels: s.panels.length, placement: { ...s.panels[0].column } }, {
+		activationEvents: ['onStartupFinished'], panels: 1, placement: { viewColumn: -2, preserveFocus: true }
+	});
+	s.registry.get('keyboardShortcutEducation.open')();
+	assert.equal(s.panels.length, 1);
+	s.panels[0].dispose(); s.invoked.fire(action);
+	assert.deepEqual({ panelsCreated: s.panels.length, listeners: s.invoked.size }, { panelsCreated: 1, listeners: 0 });
+	s.registry.get('keyboardShortcutEducation.open')();
+	assert.equal(s.panels.length, 2);
+	s.context.subscriptions.forEach(x => x.dispose());
+});
 test('palette action survives prompt acceptance; older and repeated actions copy independently', async () => {
-	const s = setup(); s.registry.get('keyboardShortcutEducation.open')();
+	const s = setup();
 	const panel = s.panels[0];
 	s.invoked.fire(action); s.invoked.fire(accept); s.invoked.fire(accept);
 	assert.deepEqual(snapshot(panel).entries, [{ id: 2, ...accept }, { id: 1, ...accept }, { id: 0, ...action }]);
@@ -26,7 +40,7 @@ test('palette action survives prompt acceptance; older and repeated actions copy
 	s.context.subscriptions.forEach(x => x.dispose());
 });
 test('clear button and command empty history; stale or invalid copy requests cannot copy another action', async () => {
-	const s = setup(); s.registry.get('keyboardShortcutEducation.open')();
+	const s = setup();
 	const panel = s.panels[0];
 	s.invoked.fire(action); panel.message.fire({ type: 'clear' });
 	assert.deepEqual(snapshot(panel).entries, []);
@@ -40,7 +54,7 @@ test('clear button and command empty history; stale or invalid copy requests can
 	s.context.subscriptions.forEach(x => x.dispose());
 });
 test('style controls preserve history and Space does not write to the clipboard', async () => {
-	const s = setup(); s.registry.get('keyboardShortcutEducation.open')();
+	const s = setup();
 	const panel = s.panels[0];
 	assert.equal(panel.column.viewColumn, -2); assert.equal(s.invoked.size, 1);
 	s.registry.get('keyboardShortcutEducation.open')();
@@ -57,7 +71,7 @@ test('style controls preserve history and Space does not write to the clipboard'
 	s.context.subscriptions.forEach(x => x.dispose());
 });
 test('hidden panel retains history; close unsubscribes and reopening starts empty', async () => {
-	const s = setup(); s.registry.get('keyboardShortcutEducation.open')();
+	const s = setup();
 	const panel = s.panels[0];
 	s.invoked.fire(action); panel.view.fire({ visible: false }); s.invoked.fire(accept);
 	assert.deepEqual(snapshot(panel).entries.map(entry => entry.commandId), [accept.commandId, action.commandId]);
