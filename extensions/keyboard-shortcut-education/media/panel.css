@@ -11,9 +11,8 @@ body { min-height: 100%; box-sizing: border-box; margin: 0; padding: 0 24px 24px
 #clear { margin-left: auto; padding: 4px 12px; border: 1px solid var(--vscode-button-border, transparent); border-radius: var(--vscode-cornerRadius-small, 4px); color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); font: inherit; cursor: pointer; }
 #clear:hover { background: var(--vscode-button-secondaryHoverBackground); }
 #clear:focus-visible, .card:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 4px; }
-#style, #hint, #clear { visibility: hidden; }
-body:hover #style, body:hover #hint, body:hover #clear,
-body.panel-focused #style, body.panel-focused #hint, body.panel-focused #clear { visibility: visible; }
+#controls { display: none; }
+body:hover #controls, body.panel-focused #controls { display: block; }
 #hint { margin: 8px 0 0; }
 #feedback { color: var(--vscode-editor-foreground); }
 #actions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }

@@ -13,7 +13,7 @@ Open a text editor, then run **Keyboard Shortcut Education Panel: Open** from th
 | Press Space while the panel has focus | Changes style without replacing the clipboard |
 | Clear, or the Clear History command | Empties the history |
 
-Run **Keyboard Shortcut Education Panel: Set Style** to choose Toast, Keycaps or Terminal. **Next Style** cycles through them. The style name, hint and Clear button appear when you hover over the panel or focus it. They disappear when neither condition applies.
+Run **Keyboard Shortcut Education Panel: Set Style** to choose Toast, Keycaps or Terminal. **Next Style** cycles through them. The style name, hint and Clear button appear when you hover over the panel or focus it. The whole controls area collapses when neither condition applies, leaving no reserved space above the history.
 
 The panel updates immediately when a command is invoked. It does not wait for the command to finish. A command that opens a prompt appears before you answer that prompt. A missing registered title falls back to the command ID.
 
