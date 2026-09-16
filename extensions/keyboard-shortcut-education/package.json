@@ -1,8 +1,8 @@
 {
 	"name": "keyboard-shortcut-education",
 	"displayName": "Keyboard Shortcut Education Panel",
-	"description": "Display the latest keyboard or Command Palette action while teaching. Requires the custom Code - OSS build.",
-	"version": "0.1.0",
+	"description": "Show a history of keyboard and Command Palette actions while teaching. Requires the custom Code - OSS build.",
+	"version": "0.2.0",
 	"publisher": "vscode",
 	"license": "MIT",
 	"engines": {
@@ -34,11 +34,17 @@
 				"command": "keyboardShortcutEducation.nextStyle",
 				"title": "Next Style",
 				"category": "Keyboard Shortcut Education Panel"
+			},
+			{
+				"command": "keyboardShortcutEducation.clearHistory",
+				"title": "Clear History",
+				"category": "Keyboard Shortcut Education Panel"
 			}
 		]
 	},
 	"scripts": {
 		"compile": "gulp compile-extension:keyboard-shortcut-education",
-		"test": "node --test test/*.test.cts"
+		"test": "node --test test/*.test.cts",
+		"test:browser": "node --test test/panel.browser.cts"
 	}
 }

@@ -4,72 +4,66 @@
  *--------------------------------------------------------------------------------------------*/
 
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const vm = require('node:vm');
-const { createRequire } = require('node:module');
 const { test } = require('node:test');
-const path = require('node:path');
-const root = path.resolve(__dirname, '..');
-const entry = path.join(root, 'out/extension.js');
-function signal() {
-	const listeners = new Set();
-	return { event: callback => { listeners.add(callback); return { dispose: () => listeners.delete(callback) }; }, fire: value => { for (const callback of [...listeners]) { callback(value); } }, get size() { return listeners.size; } };
-}
-function setup() {
-	const invoked = signal(), registry = new Map(), writes = [], panels = [];
-	let selection;
-	const vscode = {
-		ViewColumn: { Beside: -2 }, Uri: { joinPath: (uri, ...parts) => [uri, ...parts].join('/') },
-		l10n: { t: value => value },
-		commands: { onDidInvokeUserCommand: invoked.event, registerCommand: (id, fn) => { registry.set(id, fn); return { dispose: () => registry.delete(id) }; } },
-		env: { clipboard: { writeText: async value => { writes.push(value); }, readText: () => { throw Error('Clipboard read forbidden'); } } },
-		window: {
-			showQuickPick: async items => items[selection],
-			createWebviewPanel: (id, title, column, options) => {
-				const message = signal(), disposed = signal(), view = signal(), sent = [];
-				const panel = {
-					id, title, column, options, message, sent, revealCalls: [],
-					reveal(...args) { this.revealCalls.push(args); },
-					webview: { cspSource: 'test:', asWebviewUri: value => value, postMessage: async value => { sent.push(value); }, onDidReceiveMessage: message.event },
-					onDidDispose: disposed.event, onDidChangeViewState: view.event,
-					dispose: () => disposed.fire(),
-				};
-				panels.push(panel); return panel;
-			}
-		}
-	};
-	Object.defineProperty(vscode, 'workspace', { get: () => { throw Error('Workspace content access forbidden'); } });
-	const module = { exports: {} }, realRequire = createRequire(entry);
-	vm.runInNewContext(fs.readFileSync(entry, 'utf8'), { exports: module.exports, module, require: name => name === 'vscode' ? vscode : realRequire(name) }, { filename: entry });
-	const context = { extensionUri: 'test:/extension', subscriptions: [] }; module.exports.activate(context);
-	return { invoked, registry, writes, panels, context, setSelection: index => { selection = index; } };
-}
+const { setup } = require('./harness.cts');
 const action = { commandId: 'textPowerTools.insertDecimalNumbers', title: 'Text Power Tools: Insert decimal number sequence', source: 'commandPalette' };
+const accept = { commandId: 'quickInput.accept', title: 'quickInput.accept', source: 'keyboard', shortcut: 'Enter' };
 const flush = () => new Promise(resolve => setImmediate(resolve));
-test('open subscribes once; left click copies action and right click rotates and copies style', async () => {
+const snapshot = panel => {
+	panel.message.fire({ type: 'ready' });
+	return JSON.parse(JSON.stringify(panel.sent.at(-1)));
+};
+test('palette action survives prompt acceptance; older and repeated actions copy independently', async () => {
+	const s = setup(); s.registry.get('keyboardShortcutEducation.open')();
+	const panel = s.panels[0];
+	s.invoked.fire(action); s.invoked.fire(accept); s.invoked.fire(accept);
+	assert.deepEqual(snapshot(panel).entries, [{ id: 2, ...accept }, { id: 1, ...accept }, { id: 0, ...action }]);
+	panel.message.fire({ type: 'copy', id: 0 }); panel.message.fire({ type: 'copy', id: 2 }); await flush();
+	assert.deepEqual(s.writes, [
+		'Text Power Tools: Insert decimal number sequence\ntextPowerTools.insertDecimalNumbers\nCommand Palette',
+		'quickInput.accept\nquickInput.accept\nKeyboard: Enter'
+	]);
+	s.context.subscriptions.forEach(x => x.dispose());
+});
+test('clear button and command empty history; stale or invalid copy requests cannot copy another action', async () => {
+	const s = setup(); s.registry.get('keyboardShortcutEducation.open')();
+	const panel = s.panels[0];
+	s.invoked.fire(action); panel.message.fire({ type: 'clear' });
+	assert.deepEqual(snapshot(panel).entries, []);
+	s.invoked.fire(accept);
+	for (const id of [0, -1, '1', undefined]) { panel.message.fire({ type: 'copy', id }); }
+	await flush(); assert.deepEqual(s.writes, []);
+	s.invoked.fire({ ...action, commandId: 'keyboardShortcutEducation.clearHistory' });
+	s.registry.get('keyboardShortcutEducation.clearHistory')();
+	assert.deepEqual(snapshot(panel).entries, []);
+	s.invoked.fire(action); assert.deepEqual(snapshot(panel).entries, [{ id: 2, ...action }]);
+	s.context.subscriptions.forEach(x => x.dispose());
+});
+test('style controls preserve history and Space does not write to the clipboard', async () => {
 	const s = setup(); s.registry.get('keyboardShortcutEducation.open')();
 	const panel = s.panels[0];
 	assert.equal(panel.column.viewColumn, -2); assert.equal(s.invoked.size, 1);
-	s.registry.get('keyboardShortcutEducation.open')(); assert.equal(s.panels.length, 1);
-	s.invoked.fire(action); panel.message.fire({ type: 'copy' }); panel.message.fire({ type: 'nextStyleAndCopy' }); await flush();
-	assert.equal(s.writes[0], 'Text Power Tools: Insert decimal number sequence\ntextPowerTools.insertDecimalNumbers\nCommand Palette');
-	assert.match(s.writes[1], /Keycaps \(keycaps\)\nCentered card/);
-	assert.equal(panel.sent.filter(x => x.type === 'render').at(-1).action, action);
+	s.registry.get('keyboardShortcutEducation.open')();
+	assert.deepEqual(panel.revealCalls, [[2, true]]);
+	s.invoked.fire(action); panel.message.fire({ type: 'nextStyleAndCopy' }); await flush();
+	assert.match(s.writes[0], /Keycaps \(keycaps\)\nCentered card/);
 	panel.message.fire({ type: 'nextStyle' }); await flush();
-	assert.equal(panel.sent.filter(x => x.type === 'render').at(-1).style.id, 'terminal');
-	assert.equal(s.writes.length, 2, 'Space changes style without replacing the clipboard');
-	s.context.subscriptions.forEach(x => x.dispose()); assert.equal(s.invoked.size, 0);
-});
-test('style commands select and cycle; close removes observations and clears the latest action', async () => {
-	const s = setup(); s.registry.get('keyboardShortcutEducation.open')();
-	s.invoked.fire(action); s.setSelection(2); await s.registry.get('keyboardShortcutEducation.setStyle')();
-	assert.equal(s.panels[0].sent.filter(x => x.type === 'render').at(-1).style.id, 'terminal');
+	const rendered = snapshot(panel);
+	assert.deepEqual({ entries: rendered.entries, style: rendered.style.id, writes: s.writes.length, panels: s.panels.length }, { entries: [{ id: 0, ...action }], style: 'terminal', writes: 1, panels: 1 });
+	s.setSelection(0); await s.registry.get('keyboardShortcutEducation.setStyle')();
+	assert.equal(snapshot(panel).style.id, 'toast');
 	s.registry.get('keyboardShortcutEducation.nextStyle')();
-	assert.equal(s.panels[0].sent.filter(x => x.type === 'render').at(-1).style.id, 'toast');
-	s.panels[0].dispose(); assert.equal(s.invoked.size, 0);
+	assert.equal(snapshot(panel).style.id, 'keycaps');
+	s.context.subscriptions.forEach(x => x.dispose());
+});
+test('hidden panel retains history; close unsubscribes and reopening starts empty', async () => {
+	const s = setup(); s.registry.get('keyboardShortcutEducation.open')();
+	const panel = s.panels[0];
+	s.invoked.fire(action); panel.view.fire({ visible: false }); s.invoked.fire(accept);
+	assert.deepEqual(snapshot(panel).entries.map(entry => entry.commandId), [accept.commandId, action.commandId]);
+	panel.dispose(); assert.equal(s.invoked.size, 0);
 	s.invoked.fire(action); s.registry.get('keyboardShortcutEducation.open')();
-	s.panels[1].message.fire({ type: 'ready' });
-	assert.equal(s.panels[1].sent.at(-1).action, undefined);
-	s.panels[1].message.fire({ type: 'copy' }); await flush(); assert.equal(s.writes.length, 0);
+	assert.deepEqual(snapshot(s.panels[1]).entries, []);
+	s.panels[1].message.fire({ type: 'copy', id: 0 }); await flush(); assert.deepEqual(s.writes, []);
 	s.context.subscriptions.forEach(x => x.dispose());
 });

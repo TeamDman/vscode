@@ -1,6 +1,6 @@
 # Keyboard Shortcut Education Panel
 
-Open a text editor, then run **Keyboard Shortcut Education Panel: Open** from the Command Palette. The panel opens beside your editor and shows the latest command you invoke.
+Open a text editor, then run **Keyboard Shortcut Education Panel: Open** from the Command Palette. The panel opens beside your editor and keeps a history of the commands you invoke, newest first.
 
 ## Use the panel
 
@@ -8,13 +8,16 @@ Open a text editor, then run **Keyboard Shortcut Education Panel: Open** from th
 | --- | --- |
 | Keyboard shortcut | Shows the registered title, command ID and the actual keys used, including chords |
 | Command Palette action | Shows the registered title, command ID and “Command Palette” |
-| Left-click the card or press Enter on it | Copies the action as Discord-ready text |
+| Left-click a card or press Enter on it | Copies that action as Discord-ready text, including older entries |
 | Right-click the panel | Changes style and copies the new style name, ID and description |
 | Press Space while the panel has focus | Changes style without replacing the clipboard |
+| Clear, or the Clear History command | Empties the history |
 
-Run **Keyboard Shortcut Education Panel: Set Style** to choose Toast, Keycaps or Terminal. **Next Style** cycles through them. The style name and hint appear when you hover over the panel or focus it. They disappear when neither condition applies.
+Run **Keyboard Shortcut Education Panel: Set Style** to choose Toast, Keycaps or Terminal. **Next Style** cycles through them. The style name, hint and Clear button appear when you hover over the panel or focus it. They disappear when neither condition applies.
 
 The panel updates immediately when a command is invoked. It does not wait for the command to finish. A command that opens a prompt appears before you answer that prompt. A missing registered title falls back to the command ID.
+
+Follow-up prompt actions remain separate entries. For example, choosing Text Power Tools: Insert decimal number sequence and pressing Enter in its prompt leaves the Quick Pick acceptance above the original palette action. Repeated invocations are retained. Scroll down to review earlier actions; the Clear control stays at the top. Clear or closing the panel removes the history. Run **Keyboard Shortcut Education Panel: Clear History** to clear it from the palette or a user-assigned shortcut.
 
 ## Build and launch on Windows
 
@@ -88,6 +91,8 @@ Focused checks:
 ```powershell
 ./scripts/test.bat --run src/vs/platform/keybinding/test/common/abstractKeybindingService.test.ts --run src/vs/workbench/api/test/browser/mainThreadCommands.test.ts
 npm --prefix extensions/keyboard-shortcut-education test
+# Requires the Playwright Chromium browser installed for this checkout.
+npm --prefix extensions/keyboard-shortcut-education run test:browser
 npm run valid-layers-check
 ```
 
@@ -95,13 +100,13 @@ npm run valid-layers-check
 
 The feature observes resolved keyboard commands and accepted Command Palette entries. It does not rewrite bindings or intercept every programmatic command. It reads registered command metadata, not dynamic palette search labels.
 
-The event contains only `commandId`, `title`, `source` and an optional `shortcut`. The panel retains one action in memory while open. Closing it clears that action and removes its listener. It does not read typed text, command arguments, editor contents or clipboard contents. It writes to the clipboard only for explicit copy gestures. It records no action history or action log.
+The event contains only `commandId`, `title`, `source` and an optional `shortcut`. The panel retains an action history in memory while open, including while its tab is hidden. Clear removes all entries. Closing the panel clears the history and removes its listener; reopening starts empty. It does not read typed text, command arguments, editor contents or clipboard contents. It writes to the clipboard only for explicit copy gestures. History is not saved to disk or restored after a window reload.
 
-Panel control commands keep the action being styled visible. Existing VS Code behavior outside this feature still follows its own settings. No Marketplace release or upstream API compatibility is implied.
+Panel control commands do not become history entries. Each card copies its own action, even if another action arrives before it is clicked. Existing VS Code behavior outside this feature still follows its own settings. No Marketplace release or upstream API compatibility is implied.
 
 ## Verified build results
 
-The core typecheck, bundled extension and media compilation, Copilot compilation, module-layer checks and targeted lint checks passed. The keyboard and bridge suites passed 28 tests; the panel passed 5 contract and formatting tests. Browser checks covered hover, focus, blur and the Space/Enter distinction.
+The core typecheck, bundled extension and media compilation, Copilot compilation, module-layer checks and targeted lint checks passed. The keyboard and bridge suites passed 28 tests; the history panel passed 7 contract and formatting tests plus 2 browser tests covering 18 style/width/theme combinations. The history update includes regression checks for palette/prompt ordering, per-card copying, clearing, stale copy requests and disposal. Browser checks exercise the compiled panel for hover/focus controls, Space/Enter behavior, focus preservation and scrolling.
 
 Desktop verification covered the original editor shortcuts and `textPowerTools.insertDecimalNumbers` from the palette. Text Power Tools inserted 1, 2 and 3 at three cursors while the panel showed the exact title and command ID without a shortcut. Left-click copy and right-click style-and-copy both completed in the running panel.
 

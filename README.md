@@ -1,88 +1,40 @@
 # Code - OSS Education
 
-This fork adds a Keyboard Shortcut Education Panel to Code - OSS, based on VS Code 1.137.0. It shows the latest action invoked through a keyboard shortcut or the Command Palette, including extension commands that have no shortcut.
+A VS Code fork for teaching and screen sharing. The education panel shows what you just did: the command's name, its ID, and the keyboard shortcut you used or that you chose it from the Command Palette.
 
-The panel displays the registered title, command ID, invocation source and actual keys pressed. It offers three styles, Discord-ready copying, and hover/focus controls. It keeps only the latest command metadata in memory.
+Commands without a keyboard shortcut appear too. Your existing keybindings keep working. The fork observes commands at keyboard dispatch and Command Palette acceptance, so extension actions can appear without custom bindings or wrappers.
 
-**[Build, launch and use the education panel](docs/education-panel.md)**
+![Text Power Tools running from the Command Palette, with its action displayed beside the editor](docs/images/education-command-palette.png)
 
-The supported target is a Windows development build. The feature uses a custom proposed API and is bundled with this fork. The source remains under the upstream MIT license.
+Text Power Tools opens a follow-up prompt for **Insert decimal number sequence**. The panel records the original palette action before that prompt is answered.
 
----
+## Keep the steps visible
 
-# Visual Studio Code - Open Source ("Code - OSS")
-[![Feature Requests](https://img.shields.io/github/issues/microsoft/vscode/feature-request.svg)](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
-[![Bugs](https://img.shields.io/github/issues/microsoft/vscode/bug.svg)](https://github.com/microsoft/vscode/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Abug)
+The panel keeps an action history with the newest item at the top and earlier actions below. If pressing Enter in an extension's prompt invokes a Quick Pick command, it adds another entry; **Insert decimal number sequence** remains below it. Repeated actions get separate entries so viewers can follow the sequence.
 
-## The Repository
+![Action history with Enter above the original Text Power Tools command](docs/images/education-action-history.png)
 
-This repository ("`Code - OSS`") is where we (Microsoft) develop the [Visual Studio Code](https://code.visualstudio.com) product together with the community. Not only do we work on code and issues here, but we also publish our [roadmap](https://github.com/microsoft/vscode/wiki/Roadmap), [monthly iteration plans](https://github.com/microsoft/vscode/wiki/Iteration-Plans), and our [endgame plans](https://github.com/microsoft/vscode/wiki/Running-the-Endgame). This source code is available to everyone under the standard [MIT license](https://github.com/microsoft/vscode/blob/main/LICENSE.txt).
+Each card shows the registered command title, command ID and invocation source. Keyboard actions include the actual keys used, including chords. Actions appear when invoked, without waiting for completion; a cancelled or failed command can still appear. If no registered title exists, the panel shows the command ID.
 
-## Visual Studio Code
+## Use the panel
 
-<p align="center">
-  <img alt="VS Code in action" src="https://github.com/user-attachments/assets/56af271c-949d-454c-a3ea-16188c063414">
-</p>
+Run **Keyboard Shortcut Education Panel: Open** from the Command Palette. It opens beside your editor.
 
-[Visual Studio Code](https://code.visualstudio.com) is a distribution of the `Code - OSS` repository with Microsoft-specific customizations released under a traditional [Microsoft product license](https://code.visualstudio.com/License/).
+| Control | Behavior |
+| --- | --- |
+| Click a card, or focus it and press Enter | Copy that action as Discord-ready text, including older entries |
+| Space while the panel is focused | Cycle through Toast, Keycaps and Terminal styles |
+| Right-click the panel | Cycle style and copy the new style's name, ID and description |
+| Clear | Empty the action history |
 
-[Visual Studio Code](https://code.visualstudio.com) combines the simplicity of a code editor with what developers need for their core edit-build-debug cycle. It provides comprehensive code editing, navigation, and understanding support along with lightweight debugging, a rich extensibility model, and lightweight integration with existing tools.
+The style name, usage hint and Clear button appear on hover or focus, and hide when neither applies. Clear stays within reach while scrolling through a long history. **Set Style**, **Next Style** and **Clear History** are also available under **Keyboard Shortcut Education Panel** in the Command Palette.
 
-Visual Studio Code is updated monthly with new features and bug fixes. You can download it for Windows, macOS, and Linux on the [Visual Studio Code website](https://code.visualstudio.com/Download). To get the latest releases every day, install the [Insiders build](https://code.visualstudio.com/insiders).
+History lives in memory while the panel is open. Clear or closing the panel removes it; reopening starts empty. The panel collects command metadata only: it does not read typed text, command arguments, editor contents or clipboard contents. It writes to the clipboard only when you request a copy. Background programmatic commands are not collected.
 
-## Contributing
+## Build this branch
 
-There are many ways in which you can participate in this project, for example:
+This branch is based on VS Code **1.137.0**. It includes the native command hooks and a bundled education extension that uses the fork's custom API. The current build and launcher target a Windows development checkout with a separate education profile.
 
-* [Submit bugs and feature requests](https://github.com/microsoft/vscode/issues), and help us verify them as they are checked in
-* Review [source code changes](https://github.com/microsoft/vscode/pulls)
-* Review the [documentation](https://github.com/microsoft/vscode-docs) and make pull requests for anything from typos to new content.
+**[Build, launch and configure extensions](docs/education-panel.md)**
 
-If you are interested in fixing issues and contributing directly to the codebase, please see the document [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute), which covers the following:
-
-* [How to build and run from source](https://github.com/microsoft/vscode/wiki/How-to-Contribute)
-* [The development workflow, including debugging and running tests](https://github.com/microsoft/vscode/wiki/How-to-Contribute#debugging)
-* [Coding guidelines](https://github.com/microsoft/vscode/wiki/Coding-Guidelines)
-* [Submitting pull requests](https://github.com/microsoft/vscode/wiki/How-to-Contribute#pull-requests)
-* [Finding an issue to work on](https://github.com/microsoft/vscode/wiki/How-to-Contribute#where-to-contribute)
-* [Contributing to translations](https://aka.ms/vscodeloc)
-
-## Feedback
-
-* Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/vscode)
-* [Request a new feature](CONTRIBUTING.md)
-* Upvote [popular feature requests](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
-* [File an issue](https://github.com/microsoft/vscode/issues)
-* Connect with the extension author community on [GitHub Discussions](https://github.com/microsoft/vscode-discussions/discussions) or [Slack](https://aka.ms/vscode-dev-community)
-* Follow [@code](https://x.com/code) and let us know what you think!
-
-See our [wiki](https://github.com/microsoft/vscode/wiki/Feedback-Channels) for a description of each of these channels and information on some other available community-driven channels.
-
-## Related Projects
-
-Many of the core components and extensions to VS Code live in their own repositories on GitHub. For example, the [node debug adapter](https://github.com/microsoft/vscode-node-debug) and the [mono debug adapter](https://github.com/microsoft/vscode-mono-debug) repositories are separate from each other. For a complete list, please visit the [Related Projects](https://github.com/microsoft/vscode/wiki/Related-Projects) page on our [wiki](https://github.com/microsoft/vscode/wiki).
-
-## Bundled Extensions
-
-VS Code includes a set of built-in extensions located in the [extensions](extensions) folder, including grammars and snippets for many languages. Extensions that provide rich language support (inline suggestions, Go to Definition) for a language have the suffix `language-features`. For example, the `json` extension provides coloring for `JSON` and the `json-language-features` extension provides rich language support for `JSON`.
-
-## Development Container
-
-This repository includes a Visual Studio Code Dev Containers / GitHub Codespaces development container.
-
-* For [Dev Containers](https://aka.ms/vscode-remote/download/containers), use the **Dev Containers: Clone Repository in Container Volume...** command, which creates a Docker volume for better disk I/O on macOS and Windows.
-  * If you already have VS Code and Docker installed, you can also click [here](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/vscode) to get started. This will cause VS Code to automatically install the Dev Containers extension if needed, clone the source code into a container volume, and spin up a dev container for use.
-
-* For Codespaces, install the [GitHub Codespaces](https://marketplace.visualstudio.com/items?itemName=GitHub.codespaces) extension in VS Code, and use the **Codespaces: Create New Codespace** command.
-
-Docker / the Codespace should have at least **4 cores and 6 GB of RAM (8 GB recommended)** to run a full build. See the [development container README](.devcontainer/README.md) for more information.
-
-## Code of Conduct
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information, see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## License
-
-Copyright (c) Microsoft Corporation. All rights reserved.
-
-Licensed under the [MIT](LICENSE.txt) license.
+The guide covers prerequisites, first-time setup, fast rebuilds and Open VSX configuration. Text Power Tools and the other extensions shown in the screenshot are installed separately.
