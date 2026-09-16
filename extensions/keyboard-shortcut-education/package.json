@@ -1,0 +1,44 @@
+{
+	"name": "keyboard-shortcut-education",
+	"displayName": "Keyboard Shortcut Education Panel",
+	"description": "Display the latest keyboard or Command Palette action while teaching. Requires the custom Code - OSS build.",
+	"version": "0.1.0",
+	"publisher": "vscode",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.137.0"
+	},
+	"main": "./out/extension.js",
+	"enabledApiProposals": [
+		"userCommandInvocation"
+	],
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
+	},
+	"contributes": {
+		"commands": [
+			{
+				"command": "keyboardShortcutEducation.open",
+				"title": "Open",
+				"category": "Keyboard Shortcut Education Panel"
+			},
+			{
+				"command": "keyboardShortcutEducation.setStyle",
+				"title": "Set Style",
+				"category": "Keyboard Shortcut Education Panel"
+			},
+			{
+				"command": "keyboardShortcutEducation.nextStyle",
+				"title": "Next Style",
+				"category": "Keyboard Shortcut Education Panel"
+			}
+		]
+	},
+	"scripts": {
+		"compile": "gulp compile-extension:keyboard-shortcut-education",
+		"test": "node --test test/*.test.cts"
+	}
+}

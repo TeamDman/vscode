@@ -371,6 +371,10 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
 
 		// namespace: commands
 		const commands: typeof vscode.commands = {
+			get onDidInvokeUserCommand() {
+				checkProposedApiEnabled(extension, 'userCommandInvocation');
+				return extHostCommands.onDidInvokeUserCommand;
+			},
 			registerCommand(id: string, command: <T>(...args: unknown[]) => T | Thenable<T>, thisArgs?: unknown): vscode.Disposable {
 				return extHostCommands.registerCommand(true, id, command, thisArgs, undefined, extension);
 			},

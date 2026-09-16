@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import type { UserCommandInvocation } from 'vscode';
+import { MenuId, MenuRegistry } from '../../../../platform/actions/common/actions.js';
+import { notifyUserCommandInvocation } from '../../../../platform/commands/common/userCommandInvocation.js';
 import { MainThreadCommands } from '../../browser/mainThreadCommands.js';
 import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { SingleProxyRPCProtocol } from '../common/testRPCProtocol.js';
@@ -13,7 +16,31 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 
 suite('MainThreadCommands', function () {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('education observation is opt-in, static, latest-event only and disposable', () => {
+		const events: UserCommandInvocation[] = [];
+		const commands = store.add(new MainThreadCommands(SingleProxyRPCProtocol({ $acceptUserCommandInvocation: (event: UserCommandInvocation) => events.push(event) }), undefined!, new class extends mock<IExtensionService>() { }));
+		store.add(MenuRegistry.addCommand({ id: 'education.palette', title: { value: 'Insert Numbers', original: 'Insert Numbers' }, category: 'Example' }));
+		store.add(MenuRegistry.appendMenuItem(MenuId.CommandPalette, { command: { id: 'education.menuOnly', title: 'Menu Only' } }));
+		notifyUserCommandInvocation('education.palette', 'commandPalette');
+		commands.$setUserCommandObservation(true);
+		commands.$setUserCommandObservation(true);
+		notifyUserCommandInvocation('education.palette', 'commandPalette');
+		notifyUserCommandInvocation('education.untitled', 'keyboard', 'Ctrl+K Ctrl+I');
+		notifyUserCommandInvocation('education.menuOnly', 'keyboard', 'Ctrl+V');
+		notifyUserCommandInvocation('type', 'keyboard', 'A');
+		commands.$setUserCommandObservation(false);
+		notifyUserCommandInvocation('education.palette', 'commandPalette');
+		commands.$setUserCommandObservation(true);
+		commands.dispose();
+		notifyUserCommandInvocation('education.palette', 'commandPalette');
+		assert.deepStrictEqual(events, [
+			{ commandId: 'education.palette', source: 'commandPalette', title: 'Example: Insert Numbers' },
+			{ commandId: 'education.untitled', source: 'keyboard', shortcut: 'Ctrl+K Ctrl+I', title: 'education.untitled' },
+			{ commandId: 'education.menuOnly', source: 'keyboard', shortcut: 'Ctrl+V', title: 'Menu Only' }
+		]);
+	});
 
 	test('dispose on unregister', function () {
 

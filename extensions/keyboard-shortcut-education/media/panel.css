@@ -1,0 +1,33 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+:root { color-scheme: light dark; height: 100%; }
+body { min-height: 100%; box-sizing: border-box; margin: 0; padding: 24px; color: var(--vscode-editor-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); }
+#card { max-width: 720px; margin: 0 auto; padding: 24px; border: 1px solid var(--vscode-widget-border, transparent); border-radius: var(--vscode-cornerRadius-large, 8px); background: var(--vscode-editorWidget-background); cursor: pointer; overflow-wrap: anywhere; }
+#card:hover { border-color: var(--vscode-focusBorder); }
+#card:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 4px; }
+#source, #command, footer { color: var(--vscode-descriptionForeground); }
+#source { margin-bottom: 12px; }
+h1 { font-size: 1.5em; font-weight: 600; line-height: 1.3; margin: 0 0 16px; }
+#command { font-family: var(--vscode-editor-font-family); font-size: .92em; }
+#shortcut { display: inline-block; margin: 0 0 16px; padding: 6px 10px; color: var(--vscode-keybindingLabel-foreground); background: var(--vscode-keybindingLabel-background); border: 1px solid var(--vscode-keybindingLabel-border); border-bottom-color: var(--vscode-keybindingLabel-bottomBorder); border-radius: var(--vscode-cornerRadius-small, 4px); font-size: 1.25em; }
+#shortcut[hidden] { display: none; }
+footer { max-width: 720px; margin: 16px auto 0; font-size: .92em; line-height: 1.5; }
+#feedback { margin-left: 16px; color: var(--vscode-editor-foreground); }
+#hint { margin-top: 8px; }
+#style, #hint { visibility: hidden; }
+body:hover #style, body:hover #hint,
+body.panel-focused #style, body.panel-focused #hint { visibility: visible; }
+body[data-style="toast"] #card { display: flex; flex-direction: column; align-items: flex-start; }
+body[data-style="toast"] #source { order: 0; }
+body[data-style="toast"] h1 { order: 1; }
+body[data-style="toast"] #shortcut { order: 2; }
+body[data-style="toast"] #command { order: 3; }
+body[data-style="keycaps"] #card { text-align: center; padding: 32px 24px; }
+body[data-style="keycaps"] #shortcut { font-size: 2em; padding: 12px 16px; }
+body[data-style="terminal"] #card { background: transparent; border: 0; border-left: 2px solid var(--vscode-focusBorder); border-radius: 0; font-family: var(--vscode-editor-font-family); padding: 16px 20px; }
+body[data-style="terminal"] h1 { font-size: 1.25em; }
+body[data-style="terminal"] #shortcut { background: transparent; padding: 0; border: 0; font-size: 1em; }
+@media (max-width: 360px) { body { padding: 12px; } #card { padding: 16px; } body[data-style="keycaps"] #shortcut { font-size: 1.5em; } }

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Emitter } from '../../../base/common/event.js';
 import { validateConstraint } from '../../../base/common/types.js';
 import { ICommandMetadata } from '../../../platform/commands/common/commands.js';
 import * as extHostTypes from './extHostTypes.js';
@@ -48,6 +49,16 @@ export class ExtHostCommands implements ExtHostCommandsShape {
 	readonly _serviceBrand: undefined;
 
 	#proxy: MainThreadCommandsShape;
+	private readonly _userCommandInvocation = new Emitter<vscode.UserCommandInvocation>({
+		onWillAddFirstListener: () => this.#proxy.$setUserCommandObservation(true),
+		onDidRemoveLastListener: () => this.#proxy.$setUserCommandObservation(false)
+	});
+	readonly onDidInvokeUserCommand = this._userCommandInvocation.event;
+
+	$acceptUserCommandInvocation(event: vscode.UserCommandInvocation): void {
+		this._userCommandInvocation.fire(Object.freeze(event));
+	}
+
 
 	private readonly _commands = new Map<string, CommandHandler>();
 	private readonly _apiCommands = new Map<string, ApiCommand>();

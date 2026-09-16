@@ -132,6 +132,7 @@ export interface MainThreadClipboardShape extends IDisposable {
 }
 
 export interface MainThreadCommandsShape extends IDisposable {
+	$setUserCommandObservation(enabled: boolean): void;
 	$registerCommand(id: string): void;
 	$unregisterCommand(id: string): void;
 	$fireCommandActivationEvent(id: string): void;
@@ -2370,6 +2371,7 @@ export interface ExtHostCodeMapperShape {
 }
 
 export interface ExtHostCommandsShape {
+	$acceptUserCommandInvocation(event: import('vscode').UserCommandInvocation): void;
 	$executeContributedCommand(id: string, ...args: unknown[]): Promise<unknown>;
 	$getContributedCommandMetadata(): Promise<{ [id: string]: string | ICommandMetadataDto }>;
 }

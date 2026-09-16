@@ -1,3 +1,15 @@
+# Code - OSS Education
+
+This fork adds a Keyboard Shortcut Education Panel to Code - OSS, based on VS Code 1.137.0. It shows the latest action invoked through a keyboard shortcut or the Command Palette, including extension commands that have no shortcut.
+
+The panel displays the registered title, command ID, invocation source and actual keys pressed. It offers three styles, Discord-ready copying, and hover/focus controls. It keeps only the latest command metadata in memory.
+
+**[Build, launch and use the education panel](docs/education-panel.md)**
+
+The supported target is a Windows development build. The feature uses a custom proposed API and is bundled with this fork. The source remains under the upstream MIT license.
+
+---
+
 # Visual Studio Code - Open Source ("Code - OSS")
 [![Feature Requests](https://img.shields.io/github/issues/microsoft/vscode/feature-request.svg)](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
 [![Bugs](https://img.shields.io/github/issues/microsoft/vscode/bug.svg)](https://github.com/microsoft/vscode/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Abug)

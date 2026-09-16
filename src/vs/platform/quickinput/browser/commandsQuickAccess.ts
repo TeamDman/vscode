@@ -17,6 +17,7 @@ import { TfIdfCalculator, normalizeTfIdfScores } from '../../../base/common/tfId
 import { localize } from '../../../nls.js';
 import { ILocalizedString } from '../../action/common/action.js';
 import { ICommandService } from '../../commands/common/commands.js';
+import { notifyUserCommandInvocation } from '../../commands/common/userCommandInvocation.js';
 import { IConfigurationChangeEvent, IConfigurationService } from '../../configuration/common/configuration.js';
 import { IDialogService } from '../../dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../instantiation/common/instantiation.js';
@@ -310,6 +311,9 @@ export abstract class AbstractCommandsQuickAccessProvider extends PickerQuickAcc
 					id: commandPick.commandId,
 					from: runOptions?.from ?? 'quick open'
 				});
+
+				// Do not pass the pick label: dynamic picks can contain the user's search text.
+				notifyUserCommandInvocation(commandPick.commandId, 'commandPalette');
 
 				// Run
 				try {

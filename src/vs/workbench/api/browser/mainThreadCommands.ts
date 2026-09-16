@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DisposableMap, IDisposable } from '../../../base/common/lifecycle.js';
+import { DisposableMap, IDisposable, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { revive } from '../../../base/common/marshalling.js';
 import { CommandsRegistry, ICommandMetadata, ICommandService } from '../../../platform/commands/common/commands.js';
 import { IExtHostContext, extHostNamedCustomer } from '../../services/extensions/common/extHostCustomers.js';
@@ -11,12 +11,16 @@ import { IExtensionService } from '../../services/extensions/common/extensions.j
 import { Dto, SerializableObjectWithBuffers } from '../../services/extensions/common/proxyIdentifier.js';
 import { ExtHostCommandsShape, ExtHostContext, MainContext, MainThreadCommandsShape } from '../common/extHost.protocol.js';
 import { isString } from '../../../base/common/types.js';
+import { onDidInvokeUserCommand } from '../../../platform/commands/common/userCommandInvocation.js';
+import { isIMenuItem, MenuId, MenuRegistry } from '../../../platform/actions/common/actions.js';
+import { EditorExtensionsRegistry } from '../../../editor/browser/editorExtensions.js';
 
 
 @extHostNamedCustomer(MainContext.MainThreadCommands)
 export class MainThreadCommands implements MainThreadCommandsShape {
 
 	private readonly _commandRegistrations = new DisposableMap<string>();
+	private readonly _userCommandObservation = new MutableDisposable();
 	private readonly _generateCommandsDocumentationRegistration: IDisposable;
 	private readonly _proxy: ExtHostCommandsShape;
 
@@ -32,7 +36,26 @@ export class MainThreadCommands implements MainThreadCommandsShape {
 
 	dispose() {
 		this._commandRegistrations.dispose();
+		this._userCommandObservation.dispose();
 		this._generateCommandsDocumentationRegistration.dispose();
+	}
+
+	$setUserCommandObservation(enabled: boolean): void {
+		if (!enabled) {
+			this._userCommandObservation.clear();
+			return;
+		}
+		if (!this._userCommandObservation.value) {
+			this._userCommandObservation.value = onDidInvokeUserCommand(event => {
+				const command = MenuRegistry.getCommand(event.commandId)
+					?? MenuRegistry.getMenuItems(MenuId.CommandPalette).filter(isIMenuItem).find(item => item.command.id === event.commandId)?.command;
+				const label = typeof command?.title === 'string' ? command.title : command?.title.value;
+				const category = typeof command?.category === 'string' ? command.category : command?.category?.value;
+				const editorAction = label ? undefined : Array.from(EditorExtensionsRegistry.getEditorActions()).find(action => action.id === event.commandId);
+				const title = label ? (category ? `${category}: ${label}` : label) : editorAction?.label ?? event.commandId;
+				this._proxy.$acceptUserCommandInvocation({ ...event, title });
+			});
+		}
 	}
 
 	private async _generateCommandsDocumentation(): Promise<void> {

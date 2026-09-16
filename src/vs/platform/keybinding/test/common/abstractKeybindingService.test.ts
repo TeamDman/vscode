@@ -10,6 +10,7 @@ import { OS } from '../../../../base/common/platform.js';
 import Severity from '../../../../base/common/severity.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { ICommandService } from '../../../commands/common/commands.js';
+import { IUserCommandInvocation, onDidInvokeUserCommand } from '../../../commands/common/userCommandInvocation.js';
 import { ContextKeyExpr, ContextKeyExpression, IContext, IContextKeyService, IContextKeyServiceTarget } from '../../../contextkey/common/contextkey.js';
 import { AbstractKeybindingService } from '../../common/abstractKeybindingService.js';
 import { IKeyboardEvent } from '../../common/keybinding.js';
@@ -128,7 +129,7 @@ suite('AbstractKeybindingService', () => {
 		statusMessageCallsDisposed = null;
 	});
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	setup(() => {
 		executeCommandCalls = [];
@@ -239,6 +240,35 @@ suite('AbstractKeybindingService', () => {
 	function toUsLabel(keybinding: number): string {
 		return createUSLayoutResolvedKeybinding(keybinding, OS)!.getLabel()!;
 	}
+
+	suite('user command education', () => {
+		test('reports the actual completed chord, excludes arguments and unmatched/composing input', () => {
+			const first = KeyMod.CtrlCmd | KeyCode.KeyK;
+			const second = KeyMod.CtrlCmd | KeyCode.KeyI;
+			const binding = new ResolvedKeybindingItem(createUSLayoutResolvedKeybinding([first, second], OS), 'education.test', { text: 'PRIVATE-FIXTURE' }, undefined, true, null, false);
+			const service = store.add(createTestKeybindingService([binding]));
+			const events: IUserCommandInvocation[] = [];
+			store.add(onDidInvokeUserCommand(event => events.push(event)));
+			currentContextValue = createContext({});
+			service.testDispatch(KeyCode.KeyA);
+			service.testDispatch(first, true);
+			service.testDispatch(first);
+			assert.deepStrictEqual(events, []);
+			service.testDispatch(second);
+			assert.deepStrictEqual(events, [{ commandId: 'education.test', source: 'keyboard', shortcut: `${toUsLabel(first)} ${toUsLabel(second)}` }]);
+		});
+
+		test('reports the binding used rather than another binding for the same command', () => {
+			const primary = KeyMod.CtrlCmd | KeyCode.KeyK;
+			const alternate = KeyMod.CtrlCmd | KeyCode.KeyJ;
+			const service = store.add(createTestKeybindingService([kbItem(primary, 'education.test'), kbItem(alternate, 'education.test')]));
+			const events: IUserCommandInvocation[] = [];
+			store.add(onDidInvokeUserCommand(event => events.push(event)));
+			currentContextValue = createContext({});
+			service.testDispatch(primary);
+			assert.deepStrictEqual(events, [{ commandId: 'education.test', source: 'keyboard', shortcut: toUsLabel(primary) }]);
+		});
+	});
 
 	suite('simple tests: single- and multi-chord keybindings are dispatched', () => {
 

@@ -15,6 +15,7 @@ import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
 import * as nls from '../../../nls.js';
 
 import { ICommandService } from '../../commands/common/commands.js';
+import { notifyUserCommandInvocation } from '../../commands/common/userCommandInvocation.js';
 import { IContextKeyService, IContextKeyServiceTarget } from '../../contextkey/common/contextkey.js';
 import { IKeybindingService, IKeyboardEvent, KeybindingsSchemaContribution } from './keybinding.js';
 import { ResolutionResult, KeybindingResolver, ResultKind, NoMatchingKb } from './keybindingResolver.js';
@@ -379,6 +380,7 @@ export abstract class AbstractKeybindingService extends Disposable implements IK
 					}
 
 				} else {
+					const shortcut = (isSingleModiferChord ? [keypressLabel, keypressLabel] : [...this._currentChords.map(chord => chord.label), keypressLabel]).filter(label => label !== null).join(' ');
 					if (this.inChordMode) {
 						this._leaveChordMode();
 					}
@@ -388,6 +390,7 @@ export abstract class AbstractKeybindingService extends Disposable implements IK
 					}
 
 					this._log(`+ Invoking command ${resolveResult.commandId}.`);
+					notifyUserCommandInvocation(resolveResult.commandId, 'keyboard', shortcut);
 					this._currentlyDispatchingCommandId = resolveResult.commandId;
 					try {
 						if (typeof resolveResult.commandArgs === 'undefined') {

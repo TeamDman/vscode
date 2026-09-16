@@ -981,6 +981,7 @@ export default defineConfig(
 						'grant',
 						'hide',
 						'invalidate',
+						'invoke',
 						'open',
 						'override',
 						'perform',
